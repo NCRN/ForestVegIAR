@@ -1,6 +1,6 @@
 ---
 params:
-  ReportPark: "WOTR"
+  ReportPark: "CHOH"
   ReportYear: 2019
 output:
   html_document
@@ -43,9 +43,9 @@ mapPlants(UsePark, plots=UsePlots, values=1, colortype = "numeric", colors="dark
 ```{r, incldue=F}
 if( getPlants(UsePark, "trees", years=params$ReportYear) %>% nrow() >0){
   TreeData<-cbind(
-    SiteXSpec(UsePark, years=params$ReportYear, group="trees", values="count", area="ha", Total=F)[,-1] %>% colSums() %>% round(1),
-    SiteXSpec(UsePark, years=params$ReportYear, group="trees", values= "size", area="ha", Total=F)[,-1] %>% colSums() %>% round(1),
-    SiteXSpec(UsePark, years=params$ReportYear, group="trees", values= "presab", Total=F)[,-1] %>% colSums()
+    SiteXSpec(UsePark, years=params$ReportYear, group="trees", values="count", area="ha", Total=F) %>% select(-Plot_Name) %>% colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportYear, group="trees", values= "size", area="ha", Total=F) %>% select(-Plot_Name) %>% colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportYear, group="trees", values= "presab", Total=F) %>% select(-Plot_Name) %>% colSums()
   )
 
   colnames(TreeData)<-c("Trees/ha", "Basal area (m2)/ha", "Number of Plots")
@@ -69,8 +69,9 @@ if (!anyNA(TreeData)) datatable(TreeData, rownames=F, options=list(pageLength=25
 ```{r}
 if( getPlants(UsePark, "trees", years=params$ReportYear, status="dead") %>% nrow() >0){
   DeadTreeData<-cbind(
-    SiteXSpec(UsePark, years=params$ReportYear, group="trees", status="dead", values="count", area="ha", Total=F)[,-1] %>% colSums() %>% round(1),
-    SiteXSpec(UsePark, years=params$ReportYear, group="trees", status="dead", values= "presab", Total=F)[,-1] %>% colSums()
+    SiteXSpec(UsePark, years=params$ReportYear, group="trees", status="dead", values="count", area="ha", Total=F) %>% select(-Plot_Name) %>% 
+      colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportYear, group="trees", status="dead", values= "presab", Total=F) %>% select(-Plot_Name) %>% colSums()
   )
 
   colnames(DeadTreeData)<-c("Trees/ha", "Number of Plots")
@@ -96,9 +97,11 @@ if (!anyNA(DeadTreeData)) datatable(DeadTreeData, options=list(pageLength=25))
 ```{r}
 if( getPlants(UsePark, "saplings", years=params$ReportYear) %>% nrow() >0){
   SapData<-cbind(
-    SiteXSpec(UsePark, years=params$ReportYear, group="saplings", values="count", area="ha", Total=F)[,-1] %>% colSums() %>% round(1),
-    SiteXSpec(UsePark, years=params$ReportYear, group="saplings", values= "size", area="ha", Total=F)[,-1] %>% colSums() %>% round(1),
-    SiteXSpec(UsePark, years=params$ReportYear, group="saplings", values= "presab", Total=F)[,-1] %>% colSums()
+    SiteXSpec(UsePark, years=params$ReportYear, group="saplings", values="count", area="ha", Total=F) %>% select(-Plot_Name) %>% 
+      colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportYear, group="saplings", values= "size", area="ha", Total=F) %>% select(-Plot_Name) %>% 
+      colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportYear, group="saplings", values= "presab", Total=F) %>% select(-Plot_Name) %>% colSums()
   )
 
   colnames(SapData)<-c("Saplings/ha", "Basal area (m2)/ha", "Number of Plots")
@@ -124,8 +127,9 @@ if (!anyNA(SapData)) datatable(SapData, rownames=F, options=list(pageLength=25))
 ```{r}
 if( getPlants(UsePark, "seedlings", years=params$ReportYear) %>% nrow() >0){
   SeedData<-cbind(
-    SiteXSpec(UsePark, years=params$ReportYear, group="seedlings", values="count", area="ha", Total=F)[,-1] %>% colSums() %>% round(1),
-    SiteXSpec(UsePark, years=params$ReportYear, group="seedlings", values= "presab", Total=F)[,-1] %>% colSums()
+    SiteXSpec(UsePark, years=params$ReportYear, group="seedlings", values="count", area="ha", Total=F) %>% select(-Plot_Name) %>% 
+      colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportYear, group="seedlings", values= "presab", Total=F) %>% select(-Plot_Name) %>% colSums()
   )
 
   colnames(SeedData)<-c("Tree Seedlings/ha", "Number of Plots")
@@ -149,8 +153,8 @@ if (!anyNA(SeedData)) datatable(SeedData, rownames=F, options=list(pageLength=25
 ```{r}
 if( getPlants(UsePark, "shrubs", years=params$ReportYear) %>% nrow() >0){
   ShrubData<-cbind(
-    SiteXSpec(UsePark, years=params$ReportYear, group="shrubs", values="count", area="ha", Total=F)[,-1] %>% colSums() %>% round(1),
-    SiteXSpec(UsePark, years=params$ReportYear, group="shrubs", values= "presab", Total=F)[,-1] %>% colSums()
+    SiteXSpec(UsePark, years=params$ReportYear, group="shrubs", values="count", area="ha", Total=F) %>% select(-Plot_Name) %>% colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportYear, group="shrubs", values= "presab", Total=F) %>% select(-Plot_Name) %>% colSums()
   )
 
   colnames(ShrubData)<-c("Shrubs/ha", "Number of Plots")
