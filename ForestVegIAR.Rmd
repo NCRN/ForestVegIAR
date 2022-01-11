@@ -2,6 +2,7 @@
 params:
   ReportPark: "CHOH"
   ReportYear: 2019
+  ReportAllYears: 2017-2021
 output:
   html_document
 ---
@@ -17,28 +18,32 @@ library(tidyverse)
 library(DT)
 library(magrittr)
 
-NCRN<-importNCRN("T:/I&M/MONITORING/FOREST_VEGETATION/08_DATA/2019/Exports/20191021") #update data
+NCRN<-importNCRN("C:/Data/NCRN_Veg_2021_Good") #update data
 names(NCRN)<-getNames(NCRN, name.class="code")
 UsePark<-NCRN[[params$ReportPark]]
 UsePlots<-getPlots(UsePark, years=params$ReportYear)$Plot_Name
+AllPlots<-getPlots(UsePark)$Plot_Name
 
 ```
 
 ## `r params$ReportYear` Investigators Annual Report: `r getNames(NCRN[params$ReportPark], name.class ="long")` {.tabset .tabset-fade .tabset-pills} 
 
-### Plots 
+### Plot Map 
 
-In `r paste0(params$ReportYear, ", ", length(UsePlots))`, plots were monitored. Refer to the map below for their location.
+In `r paste0(params$ReportYear, ", ", length(UsePlots))`, plots were monitored. On the map below, light green circles indicate plots monitored, black circles indicate plots that were not monitored.
 
 ```{r}
+MapColors<-ifelse(AllPlots %in% UsePlots, 1, 2)
 
-mapPlants(UsePark, plots=UsePlots, values=1, colortype = "numeric", colors="darkgreen")
+mapPlants(UsePark, plots=AllPlots, values=MapColors, colortype = "numeric", colors=c("lightgreen", "black"))
 
 ```
 
 
-### Living Trees
+###  `r paste(params$ReportYear,"Data")`{.tabset .tabset-fade .tabset-pills} 
 
+
+#### Living Trees 
 
 ```{r, incldue=F}
 if( getPlants(UsePark, "trees", years=params$ReportYear) %>% nrow() >0){
@@ -55,7 +60,7 @@ if( getPlants(UsePark, "trees", years=params$ReportYear) %>% nrow() >0){
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"trees", years=params$ReportYear) ))` indvidual living trees were monitored. `r if(!anyNA(TreeData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"trees", years=params$ReportYear) ))` individual living trees were monitored. `r if(!anyNA(TreeData)) paste("See the table below for summary information on each species encountered")`
 
 
 ```{r}
@@ -63,8 +68,8 @@ if (!anyNA(TreeData)) datatable(TreeData, rownames=F, options=list(pageLength=25
 ```
 
 
-### Dead Trees
 
+#### Dead Trees
 
 ```{r}
 if( getPlants(UsePark, "trees", years=params$ReportYear, status="dead") %>% nrow() >0){
@@ -83,7 +88,7 @@ if( getPlants(UsePark, "trees", years=params$ReportYear, status="dead") %>% nrow
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"trees", status="dead", years=params$ReportYear) ))` indvidual dead trees were monitored. `r if(!anyNA(DeadTreeData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"trees", status="dead", years=params$ReportYear) ))` individual dead trees were monitored. `r if(!anyNA(DeadTreeData)) paste("See the table below for summary information on each species encountered")`
 
 
 ```{r}
@@ -93,7 +98,8 @@ if (!anyNA(DeadTreeData)) datatable(DeadTreeData, options=list(pageLength=25))
 
 
 
-### Saplings
+#### Saplings
+
 ```{r}
 if( getPlants(UsePark, "saplings", years=params$ReportYear) %>% nrow() >0){
   SapData<-cbind(
@@ -111,7 +117,7 @@ if( getPlants(UsePark, "saplings", years=params$ReportYear) %>% nrow() >0){
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"saplings", years=params$ReportYear) ))` indvidual living saplings were monitored. `r if(!anyNA(SapData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"saplings", years=params$ReportYear) ))` individual living saplings were monitored. `r if(!anyNA(SapData)) paste("See the table below for summary information on each species encountered")`
 
 
 ```{r}
@@ -122,7 +128,7 @@ if (!anyNA(SapData)) datatable(SapData, rownames=F, options=list(pageLength=25))
 
 
 
-### Tree Seedlings
+#### Tree Seedlings
 
 ```{r}
 if( getPlants(UsePark, "seedlings", years=params$ReportYear) %>% nrow() >0){
@@ -139,7 +145,7 @@ if( getPlants(UsePark, "seedlings", years=params$ReportYear) %>% nrow() >0){
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"seedlings", years=params$ReportYear) ))` indvidual living tree seedlings were monitored. `r if(!anyNA(SeedData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"seedlings", years=params$ReportYear) ))` individual living tree seedlings were monitored. `r if(!anyNA(SeedData)) paste("See the table below for summary information on each species encountered")`
 
 
 ```{r}
@@ -148,7 +154,7 @@ if (!anyNA(SeedData)) datatable(SeedData, rownames=F, options=list(pageLength=25
 
 
 
-### Shrubs
+#### Shrubs
 
 ```{r}
 if( getPlants(UsePark, "shrubs", years=params$ReportYear) %>% nrow() >0){
@@ -171,7 +177,9 @@ In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"shrubs", years=par
 if (!anyNA(ShrubData)) datatable(ShrubData, rownames=F, options=list(pageLength=25))
 ```
 
-### Shrub Seedlings
+
+
+#### Shrub Seedlings
 
 ```{r}
 if( getPlants(UsePark, "shseedlings", years=params$ReportYear) %>% nrow() >0){
@@ -189,14 +197,16 @@ if( getPlants(UsePark, "shseedlings", years=params$ReportYear) %>% nrow() >0){
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"shseedlings", years=params$ReportYear) ))` indvidual living shrub seedlings were monitored. `r if(!anyNA(ShSeedData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"shseedlings", years=params$ReportYear) ))` individual living shrub seedlings were monitored. `r if(!anyNA(ShSeedData)) paste("See the table below for summary information on each species encountered")`
 
 
 ```{r}
 if (!anyNA(ShSeedData)) datatable(ShSeedData, rownames=F, options=list(pageLength=25))
 ```
 
-### Vines on Trees
+
+
+#### Vines on Trees
 
 ```{r}
 if( getPlants(UsePark, "vines", years=params$ReportYear) %>% nrow() >0){
@@ -214,7 +224,7 @@ if( getPlants(UsePark, "vines", years=params$ReportYear) %>% nrow() >0){
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"vines", years=params$ReportYear) ))` indvidual living vines on trees were monitored. `r if(!anyNA(VineData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"vines", years=params$ReportYear) ))` individual living vines on trees were monitored. `r if(!anyNA(VineData)) paste("See the table below for summary information on each species encountered")`
 
 
 ```{r}
@@ -222,7 +232,8 @@ if (!anyNA(VineData)) datatable(VineData, rownames=F, options=list(pageLength=25
 ```
 
 
-### Understory Plants
+
+#### Understory Plants
 
 ```{r}
 if( getPlants(UsePark, "herbs", years=params$ReportYear) %>% nrow() >0){
@@ -246,3 +257,235 @@ In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"herbs", years=para
 ```{r}
 if (!anyNA(HerbData)) datatable(HerbData, rownames=F, options=list(pageLength=25))
 ```
+
+
+
+###  `r paste("Full Park", min(params$ReportAllYears), "-", max(params$ReportAllYears), "Data")` {.tabset .tabset-fade .tabset-pills} 
+
+
+#### Living Trees 
+
+```{r, incldue=F}
+if( getPlants(UsePark, "trees", years=params$ReportAllYears) %>% nrow() >0){
+  AllTreeData<-cbind(
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="trees", values="count", area="ha", Total=F) %>% select(-Plot_Name) %>% colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="trees", values= "size", area="ha", Total=F) %>% select(-Plot_Name) %>% colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="trees", values= "presab", Total=F) %>% select(-Plot_Name) %>% colSums()
+  )
+
+   colnames(AllTreeData)<-c("Trees/ha", "Basal area (m2)/ha", "Number of Plots")
+   AllTreeData <- AllTreeData %>% as.data.frame() %>%  mutate(`Latin Name`= rownames(.)) 
+   AllTreeData<-AllTreeData %>% rowwise() %>% 
+     mutate(`Common Name`=tryCatch(getPlantNames(UsePark, `Latin Name`), error=function(cond){" "})) %>% # this tryCatch business is due to species missing from the commonnames table (Rosaceae Family) 
+     select(4,5,1,2,3)
+} else AllTreeData<-NA
+```
+
+
+In `r paste( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"trees", years=params$ReportAllYears) ))` indvidual living trees were monitored. `r if(!anyNA(AllTreeData)) paste("See the table below for summary information on each species encountered")`
+
+
+```{r}
+if (!anyNA(TreeData)) datatable(AllTreeData, rownames=F, options=list(pageLength=25))
+```
+
+
+
+#### Dead Trees
+
+```{r}
+if( getPlants(UsePark, "trees", years=params$ReportAllYears, status="dead") %>% nrow() >0){
+  AllDeadTreeData<-cbind(
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="trees", status="dead", values="count", area="ha", Total=F) %>% select(-Plot_Name) %>% 
+      colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="trees", status="dead", values= "presab", Total=F) %>% select(-Plot_Name) %>% colSums()
+  )
+
+  colnames(AllDeadTreeData)<-c("Trees/ha", "Number of Plots")
+
+  AllDeadTreeData<- DeadTreeData %>% as.data.frame() %>% 
+    mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
+    select(3,4,1,2)
+} else AllDeadTreeData<-NA
+
+```
+
+In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"trees", status="dead", years=params$ReportAllYears) ))` individual dead trees were monitored. `r if(!anyNA(AllDeadTreeData)) paste("See the table below for summary information on each species encountered")`
+
+
+
+
+```{r}
+if (!anyNA(DeadTreeData)) datatable(DeadTreeData, options=list(pageLength=25))
+```
+
+
+
+
+#### Saplings
+
+```{r}
+if( getPlants(UsePark, "saplings", years=params$ReportAllYears) %>% nrow() >0){
+  AllSapData<-cbind(
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="saplings", values="count", area="ha", Total=F) %>% select(-Plot_Name) %>% 
+      colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="saplings", values= "size", area="ha", Total=F) %>% select(-Plot_Name) %>% 
+      colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="saplings", values= "presab", Total=F) %>% select(-Plot_Name) %>% colSums()
+  )
+
+  colnames(AllSapData)<-c("Saplings/ha", "Basal area (m2)/ha", "Number of Plots")
+  AllSapData<- AllSapData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.))
+  AllSapData<-AllSapData %>% rowwise() %>% 
+     mutate(`Common Name`=tryCatch(getPlantNames(UsePark, `Latin Name`), error=function(cond){" "})) %>%  
+    select(4,5,1,2,3)
+} else AllSapData<- NA
+```
+
+
+In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"saplings", years=params$ReportAllYears) ))` individual living saplings were monitored. `r if(!anyNA(SapData)) paste("See the table below for summary information on each species encountered")`
+
+
+```{r}
+if (!anyNA(AllSapData)) datatable(AllSapData, rownames=F, options=list(pageLength=25))
+```
+
+
+
+#### Tree Seedlings
+
+```{r}
+if( getPlants(UsePark, "seedlings", years=params$ReportAllYears) %>% nrow() >0){
+  AllSeedData<-cbind(
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="seedlings", values="count", area="ha", Total=F) %>% select(-Plot_Name) %>% 
+      colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="seedlings", values= "presab", Total=F) %>% select(-Plot_Name) %>% colSums()
+  )
+
+  colnames(AllSeedData)<-c("Tree Seedlings/ha", "Number of Plots")
+  AllSeedData<- AllSeedData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
+    select(3,4,1,2)
+} else AllSeedData<-NA
+```
+
+
+In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears),", ", nrow(getPlants(UsePark,"seedlings", years=params$ReportAllYears) ))` individual living tree seedlings were monitored. `r if(!anyNA(AllSeedData)) paste("See the table below for summary information on each species encountered")`
+
+
+```{r}
+if (!anyNA(AllSeedData)) datatable(AllSeedData, rownames=F, options=list(pageLength=25))
+```
+
+
+
+#### Shrubs
+
+```{r}
+if( getPlants(UsePark, "shrubs", years=params$ReportYear) %>% nrow() >0){
+  AllShrubData<-cbind(
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="shrubs", values="count", area="ha", Total=F) %>% select(-Plot_Name) %>% colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="shrubs", values= "presab", Total=F) %>% select(-Plot_Name) %>% colSums()
+  )
+
+  colnames(AllShrubData)<-c("Shrubs/ha", "Number of Plots")
+  AllShrubData<- AllShrubData %>% as.data.frame() %>%    mutate(`Latin Name`= rownames(.))
+  AllShrubData<-AllShrubData %>% rowwise() %>% 
+     mutate(`Common Name`=tryCatch(getPlantNames(UsePark, `Latin Name`), error=function(cond){" "})) %>%  
+    select(3,4,1,2)  
+} else {AllShrubData<-NA}
+```
+
+
+In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"shrubs", years=params$ReportAllYears) ))` individual living shrubs were monitored. `r if(!anyNA(AllShrubData)) paste("See the table below for summary information on each species encountered")`
+
+
+```{r}
+if (!anyNA(AllShrubData)) datatable(AllShrubData, rownames=F, options=list(pageLength=25))
+```
+
+
+#### Shrub Seedlings
+
+```{r}
+if( getPlants(UsePark, "shseedlings", years=params$ReportAllYears) %>% nrow() >0){
+  AllShSeedData<-cbind(
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="shseedlings", values="count", area="ha", Total=F) %>% 
+      select(-Plot_Name) %>% colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="shseedlings", values= "presab", Total=F) %>% 
+      select(-Plot_Name) %>% colSums()
+  )
+
+  colnames(AllShSeedData)<-c("Shrub Seedlings/ha", "Number of Plots")
+  AllShSeedData<- AllShSeedData %>% as.data.frame() %>% 
+    mutate(`Latin Name`= rownames(.))
+  AllShSeedData<-AllShSeedData %>% rowwise() %>% 
+     mutate(`Common Name`=tryCatch(getPlantNames(UsePark, `Latin Name`), error=function(cond){" "})) %>%
+    select(3,4,1,2)
+} else AllShSeedData<-NA
+```
+
+
+In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"shseedlings", years=params$ReportAllYears) ))` individual living shrub seedlings were monitored. `r if(!anyNA(AllShSeedData)) paste("See the table below for summary information on each species encountered")`
+
+
+```{r}
+if (!anyNA(AllShSeedData)) datatable(AllShSeedData, rownames=F, options=list(pageLength=25))
+```
+
+
+
+
+#### Vines on Trees
+
+```{r}
+if( getPlants(UsePark, "vines", years=params$ReportAllYears) %>% nrow() >0){
+  AllVineData<-cbind(
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="vines", values="count", area="ha", Total=F) %>% 
+      select(-Plot_Name) %>% colSums() %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="vines", values= "presab", Total=F) %>% 
+      select(-Plot_Name) %>% colSums()
+  )
+
+  colnames(AllVineData)<-c("Vines/ha", "Number of Plots")
+  AllVineData<- AllVineData %>% as.data.frame() %>% 
+    mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
+    select(3,4,1,2)
+} else AllVineData<-NA
+```
+
+
+In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"vines", years=params$ReportAllYears) ))` individual living vines on trees were monitored. `r if(!anyNA(AllVineData)) paste("See the table below for summary information on each species encountered")`
+
+
+```{r}
+if (!anyNA(AllVineData)) datatable(AllVineData, rownames=F, options=list(pageLength=25))
+```
+
+
+#### Understory Plants
+
+```{r}
+if( getPlants(UsePark, "herbs", years=params$ReportAllYears) %>% nrow() >0){
+  AllHerbData<-cbind(
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="herbs", values="size", area="ha", Total=F) %>% 
+      select(-Plot_Name) %>% colSums() %>% divide_by(12) %>% round(1),
+    SiteXSpec(UsePark, years=params$ReportAllYears, group="herbs", values= "presab", Total=F) %>% 
+      select(-Plot_Name) %>% colSums()
+  )
+
+  colnames(AllHerbData)<-c("% Cover", "Number of Plots")
+  AllHerbData<- AllHerbData %>% as.data.frame() %>% 
+    mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
+    select(3,4,1,2)
+} else AllHerbData<-NA
+```
+
+
+In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears),", ", nrow(getPlants(UsePark,"herbs", years=params$ReportAllYears) ))` observations of understory plants were recorded. `r if(!anyNA(AllHerbData)) paste("See the table below for summary information on each species encountered")`
+
+
+```{r}
+if (!anyNA(AllHerbData)) datatable(AllHerbData, rownames=F, options=list(pageLength=25))
+```
+
+
