@@ -41,7 +41,12 @@ Commons<-getCommons(UsePark) %>% select(`Latin Name`=Latin_Name,`Common Name`=Co
 
 ### Plot Map 
 
-In `r paste0(params$ReportYear, ", ", length(UsePlots))` of `r length(AllPlots)` plots were monitored. On the map below, light green circles indicate plots monitored, black circles indicate plots that were not monitored. Monitoring data is summarized in the other two tabs. The "`r paste(params$ReportYear,"Data")`" tab displays only the data collected in `r params$ReportYear`. The "`r paste("Full Park", min(params$ReportAllYears), "-", max(params$ReportAllYears), "Data")`" tab displays the most recent data for every plot monitored in entire park. The monitoring protocol is available [here](https://irma.nps.gov/DataStore/Reference/Profile/2210263). 
+In `r paste0(params$ReportYear, ", ", length(UsePlots))` of `r length(AllPlots)` plots were monitored.  Monitoring data is summarized in the other tabs. The "`r paste(params$ReportYear,"Data")`" tab displays only the data collected in `r params$ReportYear`. The "`r paste("Full Park", min(params$ReportAllYears), "-", max(params$ReportAllYears), "Data")`" tab displays the most recent data for every plot monitored in entire park. The "New Species" tab indicates if any species were monitored for the first time in `r params$ReportYear`.
+
+The monitoring protocol is available [here](https://irma.nps.gov/DataStore/Reference/Profile/2210263). 
+
+
+On the map below, light green circles indicate plots monitored, black circles indicate plots that were not monitored.
 
 ```{r}
 MapColors<-ifelse(AllPlots %in% UsePlots, 1, 2)
@@ -547,4 +552,80 @@ In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nr
 ```{r}
 if (!anyNA(AllPestData)) datatable(AllPestData, rownames=F, options=list(pageLength=25))
 ```
+
+###  `r paste("New Plant Species Found in", params$ReportYear)` 
+
+```{r}
+NewSpeciesTable<-function(park, group, reportyear, firstyear, commons_data){
+  Recent_Speices<-getPlants(park, group, years=reportyear) %>% select(Latin_Name)
+  Old_Species<-getPlants(park,group, years=firstyear:reportyear-1) %>% select(Latin_Name)
+  New_Species<-anti_join(Recent_Speices,Old_Species) %>% distinct %>% 
+    rename(`Latin Name`= Latin_Name) %>% left_join(Commons) %>% select(`Latin Name`, `Common Name`, Exotic)
+  
+return(list(Rows=nrow(New_Species), 
+            Table=datatable(New_Species, rownames=F, options=list(pageLength=25)) %>% 
+  formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))))
+  
+}
+
+New_Trees<-NewSpeciesTable(UsePark, "trees", params$ReportYear, 2006, Commons)
+
+New_Saps<-NewSpeciesTable(UsePark, "saplings", params$ReportYear, 2006, Commons)
+
+New_Tree_Seeds<-NewSpeciesTable(UsePark, "seedlings", params$ReportYear, 2006, Commons)
+
+New_Shrubs<-NewSpeciesTable(UsePark, "shrubs", params$ReportYear, 2006, Commons)
+
+New_Shrub_Seeds<-NewSpeciesTable(UsePark, "shseedlings", params$ReportYear, 2006, Commons)
+
+New_Vines<-NewSpeciesTable(UsePark, "vines", params$ReportYear, 2006, Commons)
+
+New_Herbs<-NewSpeciesTable(UsePark, "herbs", params$ReportYear, 2006, Commons)
+
+
+```
+
+#### Trees
+
+ 
+`r if(New_Trees$Rows>0) New_Trees$Table else paste("No new tree species found in ", params$ReportYear)`
+
+<br>
+
+#### Saplings
+
+`r if(New_Saps$Rows>0) New_Saps$Table else paste("No new sapling species found in ", params$ReportYear)`
+
+<br>
+
+#### Tree Seedlings
+
+`r if(New_Tree_Seeds$Rows>0) New_Tree_Seeds$Table else paste("No new tree seedlings species found in ", params$ReportYear)`
+
+<br>
+
+#### Shrubs
+
+`r if(New_Shrubs$Rows>0) New_Shrubs$Tabe else paste("No new shrub species found in ", params$ReportYear)`
+
+<br>
+
+#### Shrub Seedlings
+
+`r if(New_Shrub_Seeds$Rows>0) New_Shrub_Seeds$Table else paste("No new shrub seedling species found in ", params$ReportYear)`
+
+<br>
+
+#### Vines on Trees
+
+`r if(New_Vines$Rows>0) New_Vines$Table else paste("No new vine species found in ", params$ReportYear)`
+
+<br>
+
+#### Understory Plants
+
+`r if(New_Herbs$Rows>0) New_Herbs$Table else paste("No new understory plant species found in ", params$ReportYear)`
+
+
+
 
