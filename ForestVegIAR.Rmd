@@ -7,6 +7,14 @@ output:
   html_document
 ---
 
+<style>
+.nav-pills>li>a{
+padding: 8px;
+font-size: 13px
+
+}
+</style>
+
 ```{r, include=F}
 knitr::opts_chunk$set(echo=F)
 knitr::opts_chunk$set(message=F)
@@ -19,10 +27,13 @@ library(DT)
 library(magrittr)
 
 NCRN<-importNCRN("C:/Data/NCRN_Veg_2021_Good") #update data
+
+Conditions<-read_csv("C:/Data/NCRN_Veg_2021_Good/Tree_Sapling_Conditions.csv")
 names(NCRN)<-getNames(NCRN, name.class="code")
 UsePark<-NCRN[[params$ReportPark]]
 UsePlots<-getPlots(UsePark, years=params$ReportYear)$Plot_Name
 AllPlots<-getPlots(UsePark)$Plot_Name
+Commons<-getCommons(UsePark) %>% select(`Latin Name`=Latin_Name,`Common Name`=Common,Exotic) 
 
 ```
 
@@ -30,7 +41,7 @@ AllPlots<-getPlots(UsePark)$Plot_Name
 
 ### Plot Map 
 
-In `r paste0(params$ReportYear, ", ", length(UsePlots))`, plots were monitored. On the map below, light green circles indicate plots monitored, black circles indicate plots that were not monitored.
+In `r paste0(params$ReportYear, ", ", length(UsePlots))` of `r length(AllPlots)` plots were monitored. On the map below, light green circles indicate plots monitored, black circles indicate plots that were not monitored. Monitoring data is summarized in the other two tabs. The "`r paste(params$ReportYear,"Data")`" tab displays only the data collected in `r params$ReportYear`. The "`r paste("Full Park", min(params$ReportAllYears), "-", max(params$ReportAllYears), "Data")`" tab displays the most recent data for every plot monitored in entire park. The monitoring protocol is available [here](https://irma.nps.gov/DataStore/Reference/Profile/2210263). 
 
 ```{r}
 MapColors<-ifelse(AllPlots %in% UsePlots, 1, 2)
@@ -54,17 +65,18 @@ if( getPlants(UsePark, "trees", years=params$ReportYear) %>% nrow() >0){
   )
 
   colnames(TreeData)<-c("Trees/ha", "Basal area (m2)/ha", "Number of Plots")
-  TreeData<- TreeData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
-    select(4,5,1,2,3)
+  TreeData<- TreeData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>%
+    select(4,5,1,2,3,6)
 } else TreeData<-NA
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"trees", years=params$ReportYear) ))` individual living trees were monitored. `r if(!anyNA(TreeData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"trees", years=params$ReportYear) ))` individual living trees were monitored. `r if(!anyNA(TreeData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(TreeData)) datatable(TreeData, rownames=F, options=list(pageLength=25))
+if (!is.na(TreeData)) datatable(TreeData, rownames=F, options=list(pageLength=25)) %>% 
+  formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
 
@@ -81,18 +93,20 @@ if( getPlants(UsePark, "trees", years=params$ReportYear, status="dead") %>% nrow
 
   colnames(DeadTreeData)<-c("Trees/ha", "Number of Plots")
 
-  DeadTreeData<- DeadTreeData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
-    select(3,4,1,2)
+  DeadTreeData<- DeadTreeData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>% 
+    select(3,4,1,2,5)
 } else DeadTreeData<-NA
 
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"trees", status="dead", years=params$ReportYear) ))` individual dead trees were monitored. `r if(!anyNA(DeadTreeData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"trees", status="dead", years=params$ReportYear) ))` individual dead trees were monitored. `r if(!anyNA(DeadTreeData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(DeadTreeData)) datatable(DeadTreeData, options=list(pageLength=25))
+if (!is.na(DeadTreeData)) datatable(DeadTreeData, options=list(pageLength=25)) %>% 
+    formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
+
 ```
 
 
@@ -111,19 +125,19 @@ if( getPlants(UsePark, "saplings", years=params$ReportYear) %>% nrow() >0){
   )
 
   colnames(SapData)<-c("Saplings/ha", "Basal area (m2)/ha", "Number of Plots")
-  SapData<- SapData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
-    select(4,5,1,2,3)
+  SapData<- SapData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>% 
+    select(4,5,1,2,3,6)
 } else SapData<- NA
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"saplings", years=params$ReportYear) ))` individual living saplings were monitored. `r if(!anyNA(SapData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"saplings", years=params$ReportYear) ))` individual living saplings were monitored. `r if(!anyNA(SapData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(SapData)) datatable(SapData, rownames=F, options=list(pageLength=25))
+if (!is.na(SapData)) datatable(SapData, rownames=F, options=list(pageLength=25)) %>% 
+      formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
-
 
 
 
@@ -139,17 +153,18 @@ if( getPlants(UsePark, "seedlings", years=params$ReportYear) %>% nrow() >0){
   )
 
   colnames(SeedData)<-c("Tree Seedlings/ha", "Number of Plots")
-  SeedData<- SeedData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
-    select(3,4,1,2)
+  SeedData<- SeedData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>% 
+    select(3,4,1,2,5)
 } else SeedData<-NA
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"seedlings", years=params$ReportYear) ))` individual living tree seedlings were monitored. `r if(!anyNA(SeedData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"seedlings", years=params$ReportYear) ))` individual living tree seedlings were monitored. `r if(!anyNA(SeedData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(SeedData)) datatable(SeedData, rownames=F, options=list(pageLength=25))
+if (!is.na(SeedData)) datatable(SeedData, rownames=F, options=list(pageLength=25)) %>% 
+  formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
 
@@ -164,17 +179,18 @@ if( getPlants(UsePark, "shrubs", years=params$ReportYear) %>% nrow() >0){
   )
 
   colnames(ShrubData)<-c("Shrubs/ha", "Number of Plots")
-  ShrubData<- ShrubData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
-    select(3,4,1,2)  
+  ShrubData<- ShrubData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>%  
+    select(3,4,1,2,5)  
 } else {ShrubData<-NA}
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"shrubs", years=params$ReportYear) ))` individual living shrubs were monitored. `r if(!anyNA(ShrubData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"shrubs", years=params$ReportYear) ))` individual living shrubs were monitored. `r if(!anyNA(ShrubData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(ShrubData)) datatable(ShrubData, rownames=F, options=list(pageLength=25))
+if (!is.na(ShrubData)) datatable(ShrubData, rownames=F, options=list(pageLength=25)) %>% 
+    formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
 
@@ -191,17 +207,18 @@ if( getPlants(UsePark, "shseedlings", years=params$ReportYear) %>% nrow() >0){
   )
 
   colnames(ShSeedData)<-c("Shrub Seedlings/ha", "Number of Plots")
-  ShSeedData<- ShSeedData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
-    select(3,4,1,2)
+  ShSeedData<- ShSeedData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>%  
+    select(3,4,1,2,5)
 } else ShSeedData<-NA
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"shseedlings", years=params$ReportYear) ))` individual living shrub seedlings were monitored. `r if(!anyNA(ShSeedData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"shseedlings", years=params$ReportYear) ))` individual living shrub seedlings were monitored. `r if(!anyNA(ShSeedData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(ShSeedData)) datatable(ShSeedData, rownames=F, options=list(pageLength=25))
+if (!is.na(ShSeedData)) datatable(ShSeedData, rownames=F, options=list(pageLength=25)) %>% 
+  formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
 
@@ -218,17 +235,18 @@ if( getPlants(UsePark, "vines", years=params$ReportYear) %>% nrow() >0){
   )
 
   colnames(VineData)<-c("Vines/ha", "Number of Plots")
-  VineData<- VineData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
-    select(3,4,1,2)
+  VineData<- VineData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>% 
+    select(3,4,1,2,5)
 } else VineData<-NA
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"vines", years=params$ReportYear) ))` individual living vines on trees were monitored. `r if(!anyNA(VineData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"vines", years=params$ReportYear) ))` individual living vines on trees were monitored. `r if(!anyNA(VineData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(VineData)) datatable(VineData, rownames=F, options=list(pageLength=25))
+if (!is.na(VineData)) datatable(VineData, rownames=F, options=list(pageLength=25)) %>% 
+  formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
 
@@ -245,19 +263,39 @@ if( getPlants(UsePark, "herbs", years=params$ReportYear) %>% nrow() >0){
   )
 
   colnames(HerbData)<-c("% Cover", "Number of Plots")
-  HerbData<- HerbData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
-    select(3,4,1,2)
+  HerbData<- HerbData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.)) %>%  left_join(Commons) %>% 
+    select(3,4,1,2,5)
 } else HerbData<-NA
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"herbs", years=params$ReportYear) ))` observations of understory plants were recorded. `r if(!anyNA(HerbData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"herbs", years=params$ReportYear) ))` observations of understory plants were recorded. `r if(!anyNA(HerbData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(HerbData)) datatable(HerbData, rownames=F, options=list(pageLength=25))
+if (!is.na(HerbData)) datatable(HerbData, rownames=F, options=list(pageLength=25)) %>% 
+  formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
+
+#### Pests and Diseases
+
+```{r}
+if( getPlants(UsePark, "trees", years=params$ReportYear) %>% nrow() >0 | getPlants(UsePark, "trees", years=params$ReportYear) %>% nrow() >0){
+  PestData<-Conditions %>% filter(Unit_Code == params$ReportPark, Sample_Year==params$ReportYear, Pest==1,
+                                Status %in% c("Alive Broken","Alive Fallen", "Alive Leaning", "Alive Standing")) %>% 
+    count(Condition)
+    colnames(PestData)<-c("Pest or Disease", "Number of Occurances")
+} else PestData<-NA
+```
+
+
+In `r paste0(params$ReportYear, ", ", nrow(PestData) )` different pests or diseases were recorded on trees and saplings. `r if(!anyNA(PestData)) paste("See the table below for summary information on each species encountered.")`
+
+
+```{r}
+if (!is.na(PestData)) datatable(PestData, rownames=F, options=list(pageLength=25))
+```
 
 
 ###  `r paste("Full Park", min(params$ReportAllYears), "-", max(params$ReportAllYears), "Data")` {.tabset .tabset-fade .tabset-pills} 
@@ -274,19 +312,20 @@ if( getPlants(UsePark, "trees", years=params$ReportAllYears) %>% nrow() >0){
   )
 
    colnames(AllTreeData)<-c("Trees/ha", "Basal area (m2)/ha", "Number of Plots")
-   AllTreeData <- AllTreeData %>% as.data.frame() %>%  mutate(`Latin Name`= rownames(.)) 
-   AllTreeData<-AllTreeData %>% rowwise() %>% 
-     mutate(`Common Name`=tryCatch(getPlantNames(UsePark, `Latin Name`), error=function(cond){" "})) %>% # this tryCatch business is due to species missing from the commonnames table (Rosaceae Family) 
-     select(4,5,1,2,3)
+   AllTreeData <- AllTreeData %>% as.data.frame() %>%  mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>%  
+   # AllTreeData<-AllTreeData %>% rowwise() %>% 
+   #   mutate(`Common Name`=tryCatch(getPlantNames(UsePark, `Latin Name`), error=function(cond){" "})) %>% # this tryCatch business is due to species missing from the commonnames table (Rosaceae Family) 
+     select(4,5,1,2,3,6)
 } else AllTreeData<-NA
 ```
 
 
-In `r paste( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"trees", years=params$ReportAllYears) ))` indvidual living trees were monitored. `r if(!anyNA(AllTreeData)) paste("See the table below for summary information on each species encountered")`
+In `r paste( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"trees", years=params$ReportAllYears) ))` indvidual living trees were monitored. `r if(!anyNA(AllTreeData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(TreeData)) datatable(AllTreeData, rownames=F, options=list(pageLength=25))
+if (!is.na(TreeData)) datatable(AllTreeData, rownames=F, options=list(pageLength=25)) %>% 
+  formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
 
@@ -303,20 +342,21 @@ if( getPlants(UsePark, "trees", years=params$ReportAllYears, status="dead") %>% 
 
   colnames(AllDeadTreeData)<-c("Trees/ha", "Number of Plots")
 
-  AllDeadTreeData<- DeadTreeData %>% as.data.frame() %>% 
-    mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
-    select(3,4,1,2)
+  AllDeadTreeData<- AllDeadTreeData %>% as.data.frame() %>% 
+    mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>% 
+    select(3,4,1,2,5)
 } else AllDeadTreeData<-NA
 
 ```
 
-In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"trees", status="dead", years=params$ReportAllYears) ))` individual dead trees were monitored. `r if(!anyNA(AllDeadTreeData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"trees", status="dead", years=params$ReportAllYears) ))` individual dead trees were monitored. `r if(!anyNA(AllDeadTreeData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 
 
 ```{r}
-if (!anyNA(DeadTreeData)) datatable(DeadTreeData, options=list(pageLength=25))
+if (!is.na(DeadTreeData)) datatable(DeadTreeData, options=list(pageLength=25)) %>% 
+  formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
 
@@ -335,19 +375,18 @@ if( getPlants(UsePark, "saplings", years=params$ReportAllYears) %>% nrow() >0){
   )
 
   colnames(AllSapData)<-c("Saplings/ha", "Basal area (m2)/ha", "Number of Plots")
-  AllSapData<- AllSapData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.))
-  AllSapData<-AllSapData %>% rowwise() %>% 
-     mutate(`Common Name`=tryCatch(getPlantNames(UsePark, `Latin Name`), error=function(cond){" "})) %>%  
-    select(4,5,1,2,3)
+  AllSapData<- AllSapData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>% 
+    select(4,5,1,2,3,6)
 } else AllSapData<- NA
 ```
 
 
-In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"saplings", years=params$ReportAllYears) ))` individual living saplings were monitored. `r if(!anyNA(SapData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"saplings", years=params$ReportAllYears) ))` individual living saplings were monitored. `r if(!anyNA(SapData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(AllSapData)) datatable(AllSapData, rownames=F, options=list(pageLength=25))
+if (!is.na(AllSapData)) datatable(AllSapData, rownames=F, options=list(pageLength=25)) %>% 
+  formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
 
@@ -363,17 +402,18 @@ if( getPlants(UsePark, "seedlings", years=params$ReportAllYears) %>% nrow() >0){
   )
 
   colnames(AllSeedData)<-c("Tree Seedlings/ha", "Number of Plots")
-  AllSeedData<- AllSeedData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
-    select(3,4,1,2)
+  AllSeedData<- AllSeedData %>% as.data.frame() %>% mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>% 
+    select(3,4,1,2,5)
 } else AllSeedData<-NA
 ```
 
 
-In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears),", ", nrow(getPlants(UsePark,"seedlings", years=params$ReportAllYears) ))` individual living tree seedlings were monitored. `r if(!anyNA(AllSeedData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears),", ", nrow(getPlants(UsePark,"seedlings", years=params$ReportAllYears) ))` individual living tree seedlings were monitored. `r if(!anyNA(AllSeedData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(AllSeedData)) datatable(AllSeedData, rownames=F, options=list(pageLength=25))
+if (!is.na(AllSeedData)) datatable(AllSeedData, rownames=F, options=list(pageLength=25)) %>% 
+  formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
 
@@ -388,19 +428,18 @@ if( getPlants(UsePark, "shrubs", years=params$ReportYear) %>% nrow() >0){
   )
 
   colnames(AllShrubData)<-c("Shrubs/ha", "Number of Plots")
-  AllShrubData<- AllShrubData %>% as.data.frame() %>%    mutate(`Latin Name`= rownames(.))
-  AllShrubData<-AllShrubData %>% rowwise() %>% 
-     mutate(`Common Name`=tryCatch(getPlantNames(UsePark, `Latin Name`), error=function(cond){" "})) %>%  
-    select(3,4,1,2)  
+  AllShrubData<- AllShrubData %>% as.data.frame() %>%    mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>%  
+    select(3,4,1,2,5)  
 } else {AllShrubData<-NA}
 ```
 
 
-In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"shrubs", years=params$ReportAllYears) ))` individual living shrubs were monitored. `r if(!anyNA(AllShrubData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"shrubs", years=params$ReportAllYears) ))` individual living shrubs were monitored. `r if(!anyNA(AllShrubData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(AllShrubData)) datatable(AllShrubData, rownames=F, options=list(pageLength=25))
+if (!is.na(AllShrubData)) datatable(AllShrubData, rownames=F, options=list(pageLength=25)) %>% 
+   formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
 
@@ -417,19 +456,18 @@ if( getPlants(UsePark, "shseedlings", years=params$ReportAllYears) %>% nrow() >0
 
   colnames(AllShSeedData)<-c("Shrub Seedlings/ha", "Number of Plots")
   AllShSeedData<- AllShSeedData %>% as.data.frame() %>% 
-    mutate(`Latin Name`= rownames(.))
-  AllShSeedData<-AllShSeedData %>% rowwise() %>% 
-     mutate(`Common Name`=tryCatch(getPlantNames(UsePark, `Latin Name`), error=function(cond){" "})) %>%
-    select(3,4,1,2)
+    mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>%
+    select(3,4,1,2,5)
 } else AllShSeedData<-NA
 ```
 
 
-In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"shseedlings", years=params$ReportAllYears) ))` individual living shrub seedlings were monitored. `r if(!anyNA(AllShSeedData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"shseedlings", years=params$ReportAllYears) ))` individual living shrub seedlings were monitored. `r if(!anyNA(AllShSeedData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(AllShSeedData)) datatable(AllShSeedData, rownames=F, options=list(pageLength=25))
+if (!is.na(AllShSeedData)) datatable(AllShSeedData, rownames=F, options=list(pageLength=25)) %>% 
+   formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
 
@@ -448,17 +486,18 @@ if( getPlants(UsePark, "vines", years=params$ReportAllYears) %>% nrow() >0){
 
   colnames(AllVineData)<-c("Vines/ha", "Number of Plots")
   AllVineData<- AllVineData %>% as.data.frame() %>% 
-    mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
-    select(3,4,1,2)
+    mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>% 
+    select(3,4,1,2,5 )
 } else AllVineData<-NA
 ```
 
 
-In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"vines", years=params$ReportAllYears) ))` individual living vines on trees were monitored. `r if(!anyNA(AllVineData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(getPlants(UsePark,"vines", years=params$ReportAllYears) ))` individual living vines on trees were monitored. `r if(!anyNA(AllVineData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(AllVineData)) datatable(AllVineData, rownames=F, options=list(pageLength=25))
+if (!anyNA(AllVineData)) datatable(AllVineData, rownames=F, options=list(pageLength=25)) %>% 
+  formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
 
@@ -475,17 +514,37 @@ if( getPlants(UsePark, "herbs", years=params$ReportAllYears) %>% nrow() >0){
 
   colnames(AllHerbData)<-c("% Cover", "Number of Plots")
   AllHerbData<- AllHerbData %>% as.data.frame() %>% 
-    mutate(`Latin Name`= rownames(.), `Common Name`=getPlantNames(UsePark, `Latin Name`)) %>% 
-    select(3,4,1,2)
+    mutate(`Latin Name`= rownames(.)) %>% left_join(Commons) %>% 
+    select(3,4,1,2,5)
 } else AllHerbData<-NA
 ```
 
 
-In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears),", ", nrow(getPlants(UsePark,"herbs", years=params$ReportAllYears) ))` observations of understory plants were recorded. `r if(!anyNA(AllHerbData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears),", ", nrow(getPlants(UsePark,"herbs", years=params$ReportAllYears) ))` observations of understory plants were recorded. `r if(!anyNA(AllHerbData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(AllHerbData)) datatable(AllHerbData, rownames=F, options=list(pageLength=25))
+if (!anyNA(AllHerbData)) datatable(AllHerbData, rownames=F, options=list(pageLength=25)) %>% 
+  formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
+#### Pests and Diseases
+
+```{r}
+if( getPlants(UsePark, "trees", years=params$ReportAllYears) %>% nrow() >0 | getPlants(UsePark, "trees", years=params$ReportAllYears) %>%
+    nrow() >0){
+    AllPestData<-Conditions %>% filter(Unit_Code == params$ReportPark, Sample_Year %in% params$ReportAllYears, Pest==1,
+                                Status %in% c("Alive Broken","Alive Fallen", "Alive Leaning", "Alive Standing")) %>% 
+    count(Condition)
+    colnames(AllPestData)<-c("Pest or Disease", "Number of Occurances")
+} else AllPestData<-NA
+```
+
+
+In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(AllPestData) )` different pests or diseases were recorded on trees and saplings. `r if(!anyNA(AllPestData)) paste("See the table below for summary information on each species encountered")`
+
+
+```{r}
+if (!anyNA(AllPestData)) datatable(AllPestData, rownames=F, options=list(pageLength=25))
+```
 
