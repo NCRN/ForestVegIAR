@@ -298,7 +298,7 @@ if( nrow(PestData)==0) PestData<-NA
 ```
 
 
-In `r paste0(params$ReportYear, ", ", nrow(PestData) )` different pests or diseases were recorded on trees and saplings. `r if(!anyNA(PestData)) paste("See the table below for summary information on each species encountered.")`
+In `r paste0(params$ReportYear, ", ", if(is.na(PestData)) "0" else nrow(PestData) )`, different pests or diseases were recorded on trees and saplings. `r if(!anyNA(PestData)) paste("See the table below for summary information on each species encountered.")`
 
 
 ```{r}
@@ -429,7 +429,7 @@ if (!is.na(AllSeedData)) datatable(AllSeedData, rownames=F, options=list(pageLen
 #### Shrubs
 
 ```{r}
-if( getPlants(UsePark, "shrubs", years=params$ReportYear) %>% nrow() >0){
+if( getPlants(UsePark, "shrubs", years=params$ReportAllYears) %>% nrow() >0){
   AllShrubData<-cbind(
     SiteXSpec(UsePark, years=params$ReportAllYears, group="shrubs", values="count", area="ha", Total=F) %>% select(-Plot_Name) %>% colSums() %>% round(1),
     SiteXSpec(UsePark, years=params$ReportAllYears, group="shrubs", values= "presab", Total=F) %>% select(-Plot_Name) %>% colSums()
@@ -528,11 +528,11 @@ if( getPlants(UsePark, "herbs", years=params$ReportAllYears) %>% nrow() >0){
 ```
 
 
-In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears),", ", nrow(getPlants(UsePark,"herbs", years=params$ReportAllYears) ))` observations of understory plants were recorded. `r if(!anyNA(AllHerbData)) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
+In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears),", ", nrow(getPlants(UsePark,"herbs", years=params$ReportAllYears) ))` observations of understory plants were recorded. `r if(!all(is.na(AllHerbData))) paste("See the table below for summary information on each species encountered. Rows that are shaded and have an Exotic value equal to 1, are exotic species.")`
 
 
 ```{r}
-if (!anyNA(AllHerbData)) datatable(AllHerbData, rownames=F, options=list(pageLength=25)) %>% 
+if (!all(is.na(AllHerbData))) datatable(AllHerbData, rownames=F, options=list(pageLength=25)) %>% 
   formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -552,7 +552,7 @@ if( nrow(AllPestData)==0) AllPestData<-NA
 ```
 
 
-In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(AllPestData) )` different pests or diseases were recorded on trees and saplings. `r if(!anyNA(AllPestData)) paste("See the table below for summary information on each species encountered")`
+In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nrow(AllPestData) )` different pests or diseases were recorded on trees and saplings. `r if(!all(is.na(AllPestData))) paste("See the table below for summary information on each species encountered")`
 
 
 ```{r}
