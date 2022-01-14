@@ -5,7 +5,7 @@ Year<-2021
 
 AllYears<-2017:2021
 
-ParksCodes<-c("ANTI")
+ParksCodes<-c("ANTI", "CHOH","GWMP","HAFE","MANA","NACE","PRWI")
 
 OutFiles<-paste0(ParksCodes,"-",Year,"-","IAR.html")
 

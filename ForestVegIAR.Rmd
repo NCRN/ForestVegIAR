@@ -46,12 +46,12 @@ In `r paste0(params$ReportYear, ", ", length(UsePlots))` of `r length(AllPlots)`
 The monitoring protocol is available [here](https://irma.nps.gov/DataStore/Reference/Profile/2210263). 
 
 
-On the map below, light green circles indicate plots monitored, black circles indicate plots that were not monitored.
+On the map below, orange circles indicate plots monitored, black circles indicate plots that were not monitored.
 
 ```{r}
 MapColors<-ifelse(AllPlots %in% UsePlots, 1, 2)
 
-mapPlants(UsePark, plots=AllPlots, values=MapColors, colortype = "numeric", colors=c("lightgreen", "black"))
+mapPlants(UsePark, plots=AllPlots, values=MapColors, colortype = "numeric", colors=c("orange", "black"))
 
 ```
 
@@ -288,10 +288,13 @@ if (!is.na(HerbData)) datatable(HerbData, rownames=F, options=list(pageLength=25
 ```{r}
 if( getPlants(UsePark, "trees", years=params$ReportYear) %>% nrow() >0 | getPlants(UsePark, "trees", years=params$ReportYear) %>% nrow() >0){
   PestData<-Conditions %>% filter(Unit_Code == params$ReportPark, Sample_Year==params$ReportYear, Pest==1,
+                                  Condition!="Other significant insect damage",
                                 Status %in% c("Alive Broken","Alive Fallen", "Alive Leaning", "Alive Standing")) %>% 
     count(Condition)
     colnames(PestData)<-c("Pest or Disease", "Number of Occurances")
 } else PestData<-NA
+
+if( nrow(PestData)==0) PestData<-NA
 ```
 
 
@@ -539,10 +542,13 @@ if (!anyNA(AllHerbData)) datatable(AllHerbData, rownames=F, options=list(pageLen
 if( getPlants(UsePark, "trees", years=params$ReportAllYears) %>% nrow() >0 | getPlants(UsePark, "trees", years=params$ReportAllYears) %>%
     nrow() >0){
     AllPestData<-Conditions %>% filter(Unit_Code == params$ReportPark, Sample_Year %in% params$ReportAllYears, Pest==1,
+                                       Condition!="Other significant insect damage",
                                 Status %in% c("Alive Broken","Alive Fallen", "Alive Leaning", "Alive Standing")) %>% 
     count(Condition)
     colnames(AllPestData)<-c("Pest or Disease", "Number of Occurances")
 } else AllPestData<-NA
+
+if( nrow(AllPestData)==0) AllPestData<-NA
 ```
 
 
