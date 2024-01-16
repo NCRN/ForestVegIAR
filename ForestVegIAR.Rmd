@@ -26,9 +26,9 @@ library(tidyverse)
 library(DT)
 library(magrittr)
 
-NCRN<-importNCRN("C:/Data/NCRN_Veg_2021_Good") #update data
+NCRN<-importNCRN("C:/Data/NCRN_Veg_2023/") #update data
 
-Conditions<-read_csv("C:/Data/NCRN_Veg_2021_Good/Tree_Sapling_Conditions.csv")
+Conditions<-read_csv("C:/Data/NCRN_Veg_2023/Tree_Sapling_Conditions.csv") #Update as well
 names(NCRN)<-getNames(NCRN, name.class="code")
 UsePark<-NCRN[[params$ReportPark]]
 UsePlots<-getPlots(UsePark, years=params$ReportYear)$Plot_Name
@@ -80,7 +80,7 @@ In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"trees", years=para
 
 
 ```{r}
-if (!is.na(TreeData)) datatable(TreeData, rownames=F, options=list(pageLength=25)) %>% 
+if (is.data.frame(TreeData)) datatable(TreeData, rownames=F, options=list(pageLength=25)) %>% 
   formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -109,7 +109,7 @@ In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"trees", status="de
 
 
 ```{r}
-if (!is.na(DeadTreeData)) datatable(DeadTreeData, options=list(pageLength=25)) %>% 
+if (is.data.frame(DeadTreeData)) datatable(DeadTreeData, options=list(pageLength=25)) %>% 
     formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 
 ```
@@ -140,7 +140,7 @@ In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"saplings", years=p
 
 
 ```{r}
-if (!is.na(SapData)) datatable(SapData, rownames=F, options=list(pageLength=25)) %>% 
+if (is.data.frame(SapData)) datatable(SapData, rownames=F, options=list(pageLength=25)) %>% 
       formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -168,7 +168,7 @@ In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"seedlings", years=
 
 
 ```{r}
-if (!is.na(SeedData)) datatable(SeedData, rownames=F, options=list(pageLength=25)) %>% 
+if (is.data.frame(SeedData)) datatable(SeedData, rownames=F, options=list(pageLength=25)) %>% 
   formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -194,7 +194,7 @@ In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"shrubs", years=par
 
 
 ```{r}
-if (!is.na(ShrubData)) datatable(ShrubData, rownames=F, options=list(pageLength=25)) %>% 
+if (is.data.frame(ShrubData)) datatable(ShrubData, rownames=F, options=list(pageLength=25)) %>% 
     formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -222,7 +222,7 @@ In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"shseedlings", year
 
 
 ```{r}
-if (!is.na(ShSeedData)) datatable(ShSeedData, rownames=F, options=list(pageLength=25)) %>% 
+if (is.data.frame(ShSeedData)) datatable(ShSeedData, rownames=F, options=list(pageLength=25)) %>% 
   formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -250,7 +250,7 @@ In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"vines", years=para
 
 
 ```{r}
-if (!is.na(VineData)) datatable(VineData, rownames=F, options=list(pageLength=25)) %>% 
+if (is.data.frame(VineData)) datatable(VineData, rownames=F, options=list(pageLength=25)) %>% 
   formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -278,7 +278,7 @@ In `r paste0(params$ReportYear, ", ", nrow(getPlants(UsePark,"herbs", years=para
 
 
 ```{r}
-if (!is.na(HerbData)) datatable(HerbData, rownames=F, options=list(pageLength=25)) %>% 
+if (is.data.frame(HerbData)) datatable(HerbData, rownames=F, options=list(pageLength=25)) %>% 
   formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -287,7 +287,7 @@ if (!is.na(HerbData)) datatable(HerbData, rownames=F, options=list(pageLength=25
 
 ```{r}
 if( getPlants(UsePark, "trees", years=params$ReportYear) %>% nrow() >0 | getPlants(UsePark, "trees", years=params$ReportYear) %>% nrow() >0){
-  PestData<-Conditions %>% filter(Unit_Code == params$ReportPark, Sample_Year==params$ReportYear, Pest==1,
+  PestData<-Conditions %>% filter(Unit_Code == params$ReportPark, Sample_Year==params$ReportYear, Pest==1 | Condition=="Beechleaf disease",
                                   Condition!="Other significant insect damage",
                                 Status %in% c("Alive Broken","Alive Fallen", "Alive Leaning", "Alive Standing")) %>% 
     count(Condition)
@@ -298,11 +298,11 @@ if( nrow(PestData)==0) PestData<-NA
 ```
 
 
-In `r paste0(params$ReportYear, ", ", if(is.na(PestData)) "0" else nrow(PestData) )`, different pests or diseases were recorded on trees and saplings. `r if(!anyNA(PestData)) paste("See the table below for summary information on each species encountered.")`
+In `r paste0(params$ReportYear, ", ", if(!is.data.frame(PestData)) "0" else nrow(PestData) )`, different pests or diseases were recorded on trees and saplings. `r if(!anyNA(PestData)) paste("See the table below for summary information on each species encountered.")`
 
 
 ```{r}
-if (!is.na(PestData)) datatable(PestData, rownames=F, options=list(pageLength=25))
+if (is.data.frame(PestData)) datatable(PestData, rownames=F, options=list(pageLength=25))
 ```
 
 
@@ -332,7 +332,7 @@ In `r paste( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nr
 
 
 ```{r}
-if (!is.na(TreeData)) datatable(AllTreeData, rownames=F, options=list(pageLength=25)) %>% 
+if (is.data.frame(TreeData)) datatable(AllTreeData, rownames=F, options=list(pageLength=25)) %>% 
   formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -363,7 +363,7 @@ In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nr
 
 
 ```{r}
-if (!is.na(DeadTreeData)) datatable(DeadTreeData, options=list(pageLength=25)) %>% 
+if (is.data.frame(DeadTreeData)) datatable(DeadTreeData, options=list(pageLength=25)) %>% 
   formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -393,7 +393,7 @@ In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", nr
 
 
 ```{r}
-if (!is.na(AllSapData)) datatable(AllSapData, rownames=F, options=list(pageLength=25)) %>% 
+if (is.data.frame(AllSapData)) datatable(AllSapData, rownames=F, options=list(pageLength=25)) %>% 
   formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -420,7 +420,7 @@ In `r paste0(min(params$ReportAllYears),"-",max(params$ReportAllYears),", ", nro
 
 
 ```{r}
-if (!is.na(AllSeedData)) datatable(AllSeedData, rownames=F, options=list(pageLength=25)) %>% 
+if (is.data.frame(AllSeedData)) datatable(AllSeedData, rownames=F, options=list(pageLength=25)) %>% 
   formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -446,7 +446,7 @@ In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", n
 
 
 ```{r}
-if (!is.na(AllShrubData)) datatable(AllShrubData, rownames=F, options=list(pageLength=25)) %>% 
+if (is.data.frame(AllShrubData)) datatable(AllShrubData, rownames=F, options=list(pageLength=25)) %>% 
    formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 
@@ -474,7 +474,7 @@ In `r paste0( min(params$ReportAllYears),"-",max(params$ReportAllYears), ", ", n
 
 
 ```{r}
-if (!is.na(AllShSeedData)) datatable(AllShSeedData, rownames=F, options=list(pageLength=25)) %>% 
+if (is.data.frame(AllShSeedData)) datatable(AllShSeedData, rownames=F, options=list(pageLength=25)) %>% 
    formatStyle(columns="Exotic", target="row", backgroundColor = styleEqual(c(1,0), c("pink","white")))
 ```
 

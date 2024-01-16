@@ -1,11 +1,11 @@
 library(rmarkdown)
 library(purrr)
 
-Year<-2021
+Year<-2023
 
-AllYears<-2017:2021
+AllYears<-2019:2023
 
-ParksCodes<-c("ANTI", "CHOH","GWMP","HAFE","MANA","NACE","PRWI")
+ParksCodes<-c("ANTI","CATO", "CHOH","GWMP","HAFE","MANA","MONO","NACE","PRWI","ROCR","WOTR")
 
 OutFiles<-paste0(ParksCodes,"-",Year,"-","IAR.html")
 
